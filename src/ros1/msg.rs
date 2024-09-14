@@ -21,7 +21,7 @@ pub struct Header {
 // uint8 FLOAT64 = 8
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PointField {
-    name: String,
+    pub name: String,
     offset: u32,
     datatype: u8,
     count: u32,
@@ -43,5 +43,5 @@ pub struct PointCloud2 {
 
 pub enum Msg {
     PointCloud2(PointCloud2),
-    Unknown
+    Unknown,
 }

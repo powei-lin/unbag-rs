@@ -29,90 +29,98 @@ impl Ros1Bag {
             topic_to_type,
         }
     }
-    pub fn read_messages(&self, topics: &[String]) -> MessageIterator{
+    pub fn read_messages(&self, topics: &[String]) -> MessageIterator {
         MessageIterator::new(
             self.bag.chunk_records(),
             self.conn_id_to_topic.to_owned(),
             self.topic_to_type.to_owned(),
-            topics)
+            topics,
+        )
     }
 }
 
-pub struct MessageDataOwned{
+pub struct MessageDataOwned {
     pub conn_id: u32,
     pub time: u64,
     pub data: Vec<u8>,
 }
 
-pub struct MessageIterator<'a>{
+pub struct MessageIterator<'a> {
     topics: std::collections::HashSet<String>,
     conn_id_to_topic: HashMap<u32, String>,
     topic_to_type: HashMap<String, String>,
     chunck_iter: ChunkRecordsIterator<'a>,
-    current_messages: Option<Vec<MessageDataOwned>>
+    current_messages: Option<Vec<MessageDataOwned>>,
 }
 
 impl MessageIterator<'_> {
-    pub fn new<'a>(chunck_iter: ChunkRecordsIterator<'a>, conn_id_to_topic: HashMap<u32, String>, topic_to_type: HashMap<String, String>, topics: &[String]) -> MessageIterator<'a>{
-        MessageIterator{
+    pub fn new<'a>(
+        chunck_iter: ChunkRecordsIterator<'a>,
+        conn_id_to_topic: HashMap<u32, String>,
+        topic_to_type: HashMap<String, String>,
+        topics: &[String],
+    ) -> MessageIterator<'a> {
+        MessageIterator {
             topics: topics.iter().cloned().collect(),
             chunck_iter,
             conn_id_to_topic,
             topic_to_type,
-            current_messages: None
+            current_messages: None,
         }
     }
 }
 
-impl<'a> Iterator for MessageIterator<'a>{
+impl<'a> Iterator for MessageIterator<'a> {
     type Item = msg::Msg;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(messages) = &mut self.current_messages{
-            if let Some(msg_data) = messages.pop(){
-
-                if let Some(topic) = self.conn_id_to_topic.get(&msg_data.conn_id){
-                    if !self.topics.is_empty() && !self.topics.contains(topic){
+        if let Some(messages) = &mut self.current_messages {
+            if let Some(msg_data) = messages.pop() {
+                if let Some(topic) = self.conn_id_to_topic.get(&msg_data.conn_id) {
+                    if !self.topics.is_empty() && !self.topics.contains(topic) {
                         return self.next();
                     }
                     let topic_type = self.topic_to_type.get(topic).unwrap().as_str();
-                    match topic_type{
+                    match topic_type {
                         "sensor_msgs/PointCloud2" => {
-                            println!("point");
-                            return Some(msg::Msg::Unknown);
+                            let pointcloud2: msg::PointCloud2 =
+                                deserializer::from_slice(&msg_data.data).expect("");
+                            return Some(msg::Msg::PointCloud2(pointcloud2));
                         }
                         _ => {
                             return Some(msg::Msg::Unknown);
                         }
                     }
-
-                }
-                else{
+                } else {
                     return Some(msg::Msg::Unknown);
                 }
-            }
-            else{
+            } else {
                 self.current_messages = None;
                 return self.next();
             }
         }
-        match self.chunck_iter.next(){
+        match self.chunck_iter.next() {
             Some(Ok(ChunkRecord::Chunk(chunk))) => {
-                let mut msg_data_vec: Vec<_> = chunk.messages().filter_map(|x|{
-                    match x {
+                let mut msg_data_vec: Vec<_> = chunk
+                    .messages()
+                    .filter_map(|x| match x {
                         Ok(rosbag::MessageRecord::MessageData(msg_data)) => {
-                            Some(MessageDataOwned{conn_id: msg_data.conn_id, time: msg_data.time, data: msg_data.data.into()})
-                        },
-                        _ => None
-                    }
-                }).collect();
+                            Some(MessageDataOwned {
+                                conn_id: msg_data.conn_id,
+                                time: msg_data.time,
+                                data: msg_data.data.into(),
+                            })
+                        }
+                        _ => None,
+                    })
+                    .collect();
                 msg_data_vec.reverse();
                 self.current_messages = Some(msg_data_vec);
-                return self.next();
+                self.next()
             }
             None => None,
             _ => {
-                return self.next();
+                self.next()
             }
         }
     }
