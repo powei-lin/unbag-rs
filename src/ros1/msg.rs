@@ -2,10 +2,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Header {
-    sequence_id: u32,
-    sec: u32,
-    nsec: u32,
-    frame_id: String,
+    pub sequence_id: u32,
+    pub sec: u32,
+    pub nsec: u32,
+    pub frame_id: String,
 }
 
 // MSG: sensor_msgs/PointField
@@ -22,9 +22,9 @@ pub struct Header {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PointField {
     pub name: String,
-    offset: u32,
-    datatype: u8,
-    count: u32,
+    pub offset: u32,
+    pub datatype: u8,
+    pub count: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -34,11 +34,11 @@ pub struct PointCloud2 {
     pub width: u32,
     pub fields: Vec<PointField>,
 
-    is_bigendian: u8,
-    point_step: u32,
-    row_step: u32,
-    data: Vec<u8>,
-    is_dense: u8,
+    pub is_bigendian: u8,
+    pub point_step: u32,
+    pub row_step: u32,
+    pub data: Vec<u8>,
+    pub is_dense: u8,
 }
 
 pub enum Msg {

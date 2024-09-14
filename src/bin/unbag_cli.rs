@@ -11,4 +11,5 @@ struct UnbagCli {
 
 fn main() {
     let cli = UnbagCli::parse();
+    unbag_rs::unbag_ros1(&cli.bag_path, &cli.output);
 }

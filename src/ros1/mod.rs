@@ -119,9 +119,7 @@ impl<'a> Iterator for MessageIterator<'a> {
                 self.next()
             }
             None => None,
-            _ => {
-                self.next()
-            }
+            _ => self.next(),
         }
     }
 }
