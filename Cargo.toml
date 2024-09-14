@@ -1,0 +1,18 @@
+[package]
+name = "unbag-rs"
+version = "0.1.0"
+edition = "2021" 
+authors = ["Powei Lin <poweilin1994@gmail.com>"]
+description = "Unbag ROS bag without ROS"
+                 
+[dependencies]
+byteorder = "1.5.0"
+clap = { version = "4.5.16", features = ["derive"] }
+rosbag = "0.6.3"
+serde = { version = "1.0.210", features = ["derive"] }
+
+[[bin]]
+name = "unbag"
+path = "src/bin/unbag_cli.rs"
+test = false
+bench = false
