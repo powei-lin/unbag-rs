@@ -7,7 +7,7 @@ use std::collections::HashMap;
 pub struct Ros1Bag {
     bag: RosBag,
     conn_id_to_topic: HashMap<u32, String>,
-    topic_to_type: HashMap<String, String>,
+    pub topic_to_type: HashMap<String, String>,
 }
 
 impl Ros1Bag {
